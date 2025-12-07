@@ -149,11 +149,6 @@ export default function Welcome() {
         setCartItems(updated);
     }
 
-    //customer dan meja
-    const [customerName, setCustomerName] = useState('');
-    const [tableNumber, setTableNumber] = useState('');
-    const [showCustomerDialog, setShowCustomerDialog] = useState(false);
-
     return (
         <>
             <Head title="Welcome" />
