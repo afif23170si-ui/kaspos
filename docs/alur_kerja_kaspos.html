@@ -1,0 +1,855 @@
+<h1>Alur Kerja Sistem KasPOS - Dokumentasi Lengkap</h1>
+<p>Dokumentasi ini menjelaskan alur kerja sistem <strong>KasPOS</strong> secara komprehensif, mencakup seluruh role dan modul dari <strong>Front Office</strong> hingga <strong>Back Office</strong>.</p>
+<hr>
+<h2>📊 Overview Sistem</h2>
+<p>KasPOS adalah sistem Point of Sale (POS) berbasis Laravel + React/Inertia dengan fitur:</p>
+<pre><code class="language-mermaid">graph TB
+    subgraph &quot;FRONT OFFICE&quot;
+        PELANGGAN[👤 Pelanggan]
+        KASIR[💵 Kasir]
+        WAITER[🍽️ Waiter]
+        KITCHEN[👨‍🍳 Kitchen]
+    end
+    
+    subgraph &quot;BACK OFFICE&quot;
+        ADMIN[👑 Super Admin]
+        MANAGER[📊 Manager]
+        INVENTORY[📦 Inventory Staff]
+        FINANCE[💰 Finance]
+    end
+    
+    subgraph &quot;SISTEM&quot;
+        POS[🖥️ POS System]
+        KDS[📺 Kitchen Display]
+        DASHBOARD[📈 Dashboard]
+        REPORTS[📄 Reports]
+    end
+    
+    PELANGGAN --&gt; POS
+    KASIR --&gt; POS
+    WAITER --&gt; POS
+    POS --&gt; KDS
+    KDS --&gt; KITCHEN
+    ADMIN --&gt; DASHBOARD
+    MANAGER --&gt; REPORTS
+    INVENTORY --&gt; DASHBOARD
+    FINANCE --&gt; REPORTS
+</code></pre>
+<hr>
+<h2>🎯 FRONT OFFICE</h2>
+<h3>1. 👤 Pelanggan (Customer)</h3>
+<h4>Alur Kerja Self-Order (via QR Code Meja)</h4>
+<pre><code class="language-mermaid">sequenceDiagram
+    participant P as Pelanggan
+    participant QR as QR Code Meja
+    participant S as Sistem
+    participant K as Kitchen
+    
+    P-&gt;&gt;QR: Scan QR Code di meja
+    QR-&gt;&gt;S: Redirect ke /table/{table_id}
+    S-&gt;&gt;P: Tampilkan menu katalog
+    P-&gt;&gt;S: Pilih menu &amp; tambah ke cart
+    P-&gt;&gt;S: Submit pesanan
+    S-&gt;&gt;S: Buat TransactionKitchen record
+    S-&gt;&gt;K: Kirim ke Kitchen Display
+    Note over P,K: Pelanggan menunggu pesanan
+</code></pre>
+<p><strong>Akses Fitur:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Fitur</th>
+<th>Lokasi</th>
+<th>Deskripsi</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Lihat Menu</td>
+<td><code>/</code> atau <code>/table/{id}</code></td>
+<td>Browse kategori &amp; produk</td>
+</tr>
+<tr>
+<td>Tambah ke Cart</td>
+<td>Frontend</td>
+<td>Pilih item, qty, varian</td>
+</tr>
+<tr>
+<td>Submit Order</td>
+<td><code>HomeController@store</code></td>
+<td>Buat transaksi pending</td>
+</tr>
+<tr>
+<td>Lihat Status</td>
+<td>-</td>
+<td>Update dari Kitchen</td>
+</tr>
+</tbody></table>
+<hr>
+<h3>2. 💵 Kasir (Cashier)</h3>
+<h4>Alur Kerja Shift Kasir</h4>
+<pre><code class="language-mermaid">sequenceDiagram
+    participant K as Kasir
+    participant POS as POS System
+    participant S as Shift System
+    
+    K-&gt;&gt;POS: Login ke sistem
+    POS-&gt;&gt;K: Cek status shift
+    alt Belum buka shift
+        K-&gt;&gt;S: Buka Shift Kasir
+        K-&gt;&gt;S: Input modal awal
+        S-&gt;&gt;POS: Shift aktif
+    end
+    Note over K,POS: Mulai melayani transaksi
+    K-&gt;&gt;S: Tutup Shift
+    S-&gt;&gt;S: Hitung total penjualan
+    S-&gt;&gt;K: Laporan shift (modal + penjualan - pengeluaran)
+</code></pre>
+<p><strong>Alur Transaksi Penjualan:</strong></p>
+<pre><code class="language-mermaid">flowchart TD
+    A[Buka POS] --&gt; B{Ada transaksi pending?}
+    B --&gt;|Ya| C[Ambil dari Pending List]
+    B --&gt;|Tidak| D[Buat transaksi baru]
+    
+    C --&gt; E[Tampilkan cart]
+    D --&gt; E
+    
+    E --&gt; F[Tambah item ke cart]
+    F --&gt; G{Semua item?}
+    G --&gt;|Belum| F
+    G --&gt;|Sudah| H[Apply Discount/Coupon]
+    
+    H --&gt; I[Pilih metode bayar]
+    I --&gt; J{Metode?}
+    J --&gt;|Cash| K[Input nominal bayar]
+    J --&gt;|Transfer/QRIS| L[Pilih bank account]
+    
+    K --&gt; M[Proses pembayaran]
+    L --&gt; M
+    
+    M --&gt; N[Simpan transaksi]
+    N --&gt; O[Cetak struk]
+    O --&gt; P{Kirim ke Kitchen?}
+    P --&gt;|Ya| Q[Send to Kitchen Display]
+    P --&gt;|Tidak| R[Selesai]
+    Q --&gt; R
+</code></pre>
+<p><strong>Akses Fitur Kasir:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Fitur</th>
+<th>Route</th>
+<th>Controller Method</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Buka POS</td>
+<td><code>/pos</code></td>
+<td><code>PosController@index</code></td>
+</tr>
+<tr>
+<td>Buka Shift</td>
+<td><code>/pos/open-cashier-shift</code></td>
+<td><code>PosController@openCashierShift</code></td>
+</tr>
+<tr>
+<td>Tutup Shift</td>
+<td><code>/pos/close-cashiers</code></td>
+<td><code>PosController@closeCashierShift</code></td>
+</tr>
+<tr>
+<td>Proses Transaksi</td>
+<td><code>/pos</code> (POST)</td>
+<td><code>PosController@store</code></td>
+</tr>
+<tr>
+<td>Cari produk barcode</td>
+<td><code>/pos/products/search-barcode</code></td>
+<td><code>PosController@searchByBarcode</code></td>
+</tr>
+<tr>
+<td>Pending Transactions</td>
+<td><code>/pos/pending-transactions</code></td>
+<td><code>PosController@pendingTransaction</code></td>
+</tr>
+<tr>
+<td>History Transactions</td>
+<td><code>/pos/history-transactions</code></td>
+<td><code>PosController@historyTransaction</code></td>
+</tr>
+<tr>
+<td>Cetak Struk</td>
+<td><code>/pos/print-receipt</code></td>
+<td><code>PosController@receipt</code></td>
+</tr>
+<tr>
+<td>Kirim ke Kitchen</td>
+<td><code>/pos/send-kitchen</code></td>
+<td><code>PosController@sendKitchen</code></td>
+</tr>
+<tr>
+<td>Buka Meja</td>
+<td><code>/pos/update-table</code></td>
+<td><code>PosController@openTable</code></td>
+</tr>
+<tr>
+<td>Discount per Item</td>
+<td><code>/pos/discount-per-item</code></td>
+<td><code>PosController@discountPerItem</code></td>
+</tr>
+</tbody></table>
+<hr>
+<h3>3. 🍽️ Waiter</h3>
+<p>Waiter berinteraksi dengan sistem melalui POS untuk:</p>
+<pre><code class="language-mermaid">flowchart LR
+    W[Waiter] --&gt; A[Buka/Assign Meja]
+    W --&gt; B[Input Pesanan Customer]
+    W --&gt; C[Kirim ke Kitchen]
+    W --&gt; D[Update Status Meja]
+    
+    A --&gt; E[tables.open-tables]
+    B --&gt; F[POS Transaction]
+    C --&gt; G[Kitchen Display]
+    D --&gt; H[Table Management]
+</code></pre>
+<p><strong>Fitur Khusus Waiter:</strong></p>
+<ul>
+<li>Assign meja ke transaksi</li>
+<li>Input pesanan pelanggan</li>
+<li>Kirim pesanan ke Kitchen Display</li>
+<li>Monitor status pesanan</li>
+</ul>
+<hr>
+<h3>4. 👨‍🍳 Kitchen (Dapur)</h3>
+<h4>Alur Kerja Kitchen Display System (KDS)</h4>
+<pre><code class="language-mermaid">sequenceDiagram
+    participant POS as POS/Kasir
+    participant KDS as Kitchen Display
+    participant COOK as Koki
+    
+    POS-&gt;&gt;KDS: Pesanan baru masuk
+    KDS-&gt;&gt;KDS: Tampilkan dengan status &quot;pending&quot;
+    COOK-&gt;&gt;KDS: Mulai masak - Update &quot;cooking&quot;
+    COOK-&gt;&gt;KDS: Selesai - Update &quot;done&quot;
+    KDS-&gt;&gt;POS: Notifikasi pesanan siap
+</code></pre>
+<p><strong>Kitchen Display Interface:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Status</th>
+<th>Warna</th>
+<th>Aksi</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>pending</code></td>
+<td>🟡 Kuning</td>
+<td>Menunggu diproses</td>
+</tr>
+<tr>
+<td><code>cooking</code></td>
+<td>🔵 Biru</td>
+<td>Sedang dimasak</td>
+</tr>
+<tr>
+<td><code>done</code></td>
+<td>🟢 Hijau</td>
+<td>Siap disajikan</td>
+</tr>
+<tr>
+<td><code>cancelled</code></td>
+<td>🔴 Merah</td>
+<td>Dibatalkan</td>
+</tr>
+</tbody></table>
+<p><strong>Akses Fitur Kitchen:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Fitur</th>
+<th>Route</th>
+<th>Controller Method</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Kitchen Display</td>
+<td><code>/kitchen</code></td>
+<td><code>TransactionKitchenController@index</code></td>
+</tr>
+<tr>
+<td>List Orders</td>
+<td><code>/kitchen/list-orders</code></td>
+<td><code>TransactionKitchenController@listOrders</code></td>
+</tr>
+<tr>
+<td>Update Status</td>
+<td><code>/kitchen/{id}/update</code></td>
+<td><code>TransactionKitchenController@update</code></td>
+</tr>
+</tbody></table>
+<hr>
+<h2>🏢 BACK OFFICE</h2>
+<h3>5. 👑 Super Admin</h3>
+<p>Super Admin memiliki akses penuh ke seluruh sistem.</p>
+<h4>Alur Kerja Harian Super Admin</h4>
+<pre><code class="language-mermaid">graph TD
+    A[Login] --&gt; B[Dashboard]
+    B --&gt; C{Pilih Aktivitas}
+    
+    C --&gt; D[Kelola Users &amp; Roles]
+    C --&gt; E[Kelola Produk &amp; Stok]
+    C --&gt; F[Kelola Keuangan]
+    C --&gt; G[Lihat Reports]
+    C --&gt; H[Settings Toko]
+    
+    D --&gt; D1[CRUD Users]
+    D --&gt; D2[CRUD Roles]
+    D --&gt; D3[CRUD Permissions]
+    
+    E --&gt; E1[Products]
+    E --&gt; E2[Categories]
+    E --&gt; E3[Materials/Bahan]
+    E --&gt; E4[Stock Opname]
+    
+    F --&gt; F1[Transactions]
+    F --&gt; F2[Expenses]
+    F --&gt; F3[Orders/Pembelian]
+    
+    G --&gt; G1[Sales Report]
+    G --&gt; G2[Stock Report]
+    G --&gt; G3[Cash Flow]
+    G --&gt; G4[Profit/Loss]
+    
+    H --&gt; H1[Store Info]
+    H --&gt; H2[Bank Accounts]
+    H --&gt; H3[Shift Settings]
+    H --&gt; H4[Customer Loyalty]
+</code></pre>
+<p><strong>Akses Lengkap Super Admin:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Modul</th>
+<th>Routes</th>
+<th>Deskripsi</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Dashboard</td>
+<td><code>/dashboard</code></td>
+<td>Analytics &amp; overview</td>
+</tr>
+<tr>
+<td>Users</td>
+<td><code>/users/*</code></td>
+<td>Kelola akun pengguna</td>
+</tr>
+<tr>
+<td>Roles</td>
+<td><code>/roles/*</code></td>
+<td>Kelola role &amp; hak akses</td>
+</tr>
+<tr>
+<td>Permissions</td>
+<td><code>/permissions/*</code></td>
+<td>Kelola permission</td>
+</tr>
+<tr>
+<td>Products</td>
+<td><code>/products/*</code></td>
+<td>Kelola produk</td>
+</tr>
+<tr>
+<td>Categories</td>
+<td><code>/categories/*</code></td>
+<td>Kelola kategori</td>
+</tr>
+<tr>
+<td>Suppliers</td>
+<td><code>/suppliers/*</code></td>
+<td>Kelola supplier</td>
+</tr>
+<tr>
+<td>Materials</td>
+<td><code>/materials/*</code></td>
+<td>Kelola bahan baku</td>
+</tr>
+<tr>
+<td>Checking Stocks</td>
+<td><code>/checking-stocks/*</code></td>
+<td>Stock opname</td>
+</tr>
+<tr>
+<td>Orders</td>
+<td><code>/orders/*</code></td>
+<td>Purchase orders ke supplier</td>
+</tr>
+<tr>
+<td>Transactions</td>
+<td><code>/transactions/*</code></td>
+<td>Transaksi penjualan</td>
+</tr>
+<tr>
+<td>Expenses</td>
+<td><code>/expenses/*</code></td>
+<td>Kelola pengeluaran</td>
+</tr>
+<tr>
+<td>Reports</td>
+<td><code>/reports/*</code></td>
+<td>Berbagai laporan</td>
+</tr>
+<tr>
+<td>Settings</td>
+<td><code>/setting-stores/*</code></td>
+<td>Pengaturan toko</td>
+</tr>
+<tr>
+<td>Audit Logs</td>
+<td><code>/audit-logs/*</code></td>
+<td>Log aktivitas sistem</td>
+</tr>
+</tbody></table>
+<hr>
+<h3>6. 📊 Manager / Supervisor</h3>
+<h4>Fokus Utama: Monitoring &amp; Reporting</h4>
+<pre><code class="language-mermaid">flowchart TD
+    M[Manager Login] --&gt; D[Dashboard]
+    
+    D --&gt; A[📈 Lihat Statistik Penjualan]
+    D --&gt; B[📉 Monitor Stok Rendah]
+    D --&gt; C[💰 Review Expenses]
+    D --&gt; E[📊 Generate Reports]
+    
+    A --&gt; A1[Daily Sales]
+    A --&gt; A2[Monthly Trends]
+    A --&gt; A3[Top Products]
+    
+    B --&gt; B1[Low Stock Alert]
+    B --&gt; B2[Request Purchase Order]
+    
+    E --&gt; E1[Sales Report]
+    E --&gt; E2[Stock Report]
+    E --&gt; E3[Cash Flow Report]
+    E --&gt; E4[Profit/Loss Report]
+</code></pre>
+<p><strong>Dashboard Analytics:</strong></p>
+<ul>
+<li>Total penjualan (harian/bulanan)</li>
+<li>Top 10 produk terlaris</li>
+<li>Stok rendah (low stock alerts)</li>
+<li>Grafik penjualan per kategori</li>
+<li>Perbandingan month-over-month</li>
+</ul>
+<p><strong>Reports Available:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Report</th>
+<th>Route</th>
+<th>Deskripsi</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Cash Flow</td>
+<td><code>/reports/cash-flow</code></td>
+<td>Arus kas masuk/keluar</td>
+</tr>
+<tr>
+<td>Purchase</td>
+<td><code>/reports/purchase</code></td>
+<td>Laporan pembelian</td>
+</tr>
+<tr>
+<td>Sales</td>
+<td><code>/reports/sale</code></td>
+<td>Laporan penjualan</td>
+</tr>
+<tr>
+<td>Stock</td>
+<td><code>/reports/stock</code></td>
+<td>Laporan stok</td>
+</tr>
+<tr>
+<td>Card Stock</td>
+<td><code>/reports/card-stock</code></td>
+<td>Kartu stok per item</td>
+</tr>
+<tr>
+<td>Profit/Loss</td>
+<td><code>/reports/profit-loss</code></td>
+<td>Laporan laba rugi</td>
+</tr>
+</tbody></table>
+<hr>
+<h3>7. 📦 Inventory / Gudang</h3>
+<h4>Alur Kerja Inventory Staff</h4>
+<pre><code class="language-mermaid">flowchart TD
+    I[Inventory Staff] --&gt; A[Kelola Stok]
+    
+    A --&gt; B[Stock Opname]
+    A --&gt; C[Purchase Orders]
+    A --&gt; D[Purchase Returns]
+    A --&gt; E[Material Management]
+    
+    B --&gt; B1[Buat Checking Stock]
+    B1 --&gt; B2[Hitung Fisik]
+    B2 --&gt; B3[Input Selisih]
+    B3 --&gt; B4[Adjustment Stok]
+    
+    C --&gt; C1[Buat PO ke Supplier]
+    C1 --&gt; C2[Terima Barang]
+    C2 --&gt; C3[Update Stok]
+    
+    D --&gt; D1[Return Barang Rusak]
+    D1 --&gt; D2[Kurangi Stok]
+    
+    E --&gt; E1[Track Bahan Baku]
+    E1 --&gt; E2[Recipe Management]
+</code></pre>
+<p><strong>Akses Fitur Inventory:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Fitur</th>
+<th>Route</th>
+<th>Deskripsi</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Products</td>
+<td><code>/products</code></td>
+<td>Lihat &amp; kelola produk</td>
+</tr>
+<tr>
+<td>Materials</td>
+<td><code>/materials</code></td>
+<td>Bahan baku &amp; stok</td>
+</tr>
+<tr>
+<td>Checking Stocks</td>
+<td><code>/checking-stocks</code></td>
+<td>Stock opname</td>
+</tr>
+<tr>
+<td>Purchase Orders</td>
+<td><code>/orders</code></td>
+<td>Pembelian ke supplier</td>
+</tr>
+<tr>
+<td>Purchase Returns</td>
+<td><code>/purchase-returns</code></td>
+<td>Retur pembelian</td>
+</tr>
+<tr>
+<td>Suppliers</td>
+<td><code>/suppliers</code></td>
+<td>Data supplier</td>
+</tr>
+</tbody></table>
+<hr>
+<h3>8. 💰 Finance / Keuangan</h3>
+<h4>Alur Kerja Finance Staff</h4>
+<pre><code class="language-mermaid">flowchart TD
+    F[Finance Staff] --&gt; A[Input Transaksi]
+    F --&gt; B[Kelola Expenses]
+    F --&gt; C[Generate Reports]
+    
+    A --&gt; A1[Review Transactions]
+    A --&gt; A2[Process Payments]
+    A --&gt; A3[Handle Returns]
+    
+    B --&gt; B1[Create Expense Categories]
+    B --&gt; B2[Input Daily Expenses]
+    B --&gt; B3[Approve Expenses]
+    
+    C --&gt; C1[Cash Flow Report]
+    C --&gt; C2[Profit/Loss Statement]
+    C --&gt; C3[Sales Summary]
+    C --&gt; C4[Export to Excel]
+</code></pre>
+<p><strong>Struktur Expense Management:</strong></p>
+<pre><code>📁 Expense Categories
+├── 📂 Operasional
+│   ├── Listrik
+│   ├── Air
+│   └── Internet
+├── 📂 Gaji
+│   ├── Karyawan Tetap
+│   └── Part-time
+├── 📂 Supplies
+│   ├── Bahan Baku
+│   └── Packaging
+└── 📂 Marketing
+    ├── Ads
+    └── Promo
+</code></pre>
+<p><strong>Akses Fitur Finance:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Fitur</th>
+<th>Route</th>
+<th>Deskripsi</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Transactions</td>
+<td><code>/transactions</code></td>
+<td>Review transaksi</td>
+</tr>
+<tr>
+<td>Transaction Returns</td>
+<td><code>/transaction-returns</code></td>
+<td>Proses retur</td>
+</tr>
+<tr>
+<td>Expenses</td>
+<td><code>/expenses</code></td>
+<td>Input pengeluaran</td>
+</tr>
+<tr>
+<td>Expense Categories</td>
+<td><code>/expense-categories</code></td>
+<td>Kategori pengeluaran</td>
+</tr>
+<tr>
+<td>Expense Subcategories</td>
+<td><code>/expense-subcategories</code></td>
+<td>Sub-kategori</td>
+</tr>
+<tr>
+<td>Cash Flow Report</td>
+<td><code>/reports/cash-flow</code></td>
+<td>Arus kas</td>
+</tr>
+<tr>
+<td>Profit/Loss</td>
+<td><code>/reports/profit-loss</code></td>
+<td>Laba rugi</td>
+</tr>
+</tbody></table>
+<hr>
+<h2>🔄 Alur Transaksi End-to-End</h2>
+<h3>Complete Transaction Flow</h3>
+<pre><code class="language-mermaid">flowchart TB
+    subgraph &quot;1. ORDER PHASE&quot;
+        A[Customer/Kasir] --&gt; B[Pilih Produk]
+        B --&gt; C[Add to Cart]
+        C --&gt; D{Discount?}
+        D --&gt;|Ya| E[Apply Coupon/Discount]
+        D --&gt;|Tidak| F[Review Cart]
+        E --&gt; F
+    end
+    
+    subgraph &quot;2. PAYMENT PHASE&quot;
+        F --&gt; G[Pilih Payment Method]
+        G --&gt; H{Method Type}
+        H --&gt;|Cash| I[Input Cash Amount]
+        H --&gt;|Transfer| J[Select Bank]
+        H --&gt;|QRIS| J
+        I --&gt; K[Calculate Change]
+        J --&gt; K
+        K --&gt; L[Submit Payment]
+    end
+    
+    subgraph &quot;3. KITCHEN PHASE&quot;
+        L --&gt; M{Food Item?}
+        M --&gt;|Ya| N[Send to Kitchen]
+        N --&gt; O[Kitchen Display]
+        O --&gt; P[Cook Prepares]
+        P --&gt; Q[Mark as Done]
+        M --&gt;|Tidak| R[Ready for Pickup]
+        Q --&gt; R
+    end
+    
+    subgraph &quot;4. COMPLETION PHASE&quot;
+        R --&gt; S[Print Receipt]
+        S --&gt; T[Update Stock]
+        T --&gt; U[Add Customer Points]
+        U --&gt; V[Transaction Complete]
+    end
+</code></pre>
+<hr>
+<h2>📱 Fitur Tambahan</h2>
+<h3>Discount &amp; Promo System</h3>
+<pre><code class="language-mermaid">graph LR
+    D[Discount Types] --&gt; A[Coupon]
+    D --&gt; B[Discount Package]
+    D --&gt; C[Discount Product]
+    
+    A --&gt; A1[Code-based discount]
+    B --&gt; B1[Bundle deals]
+    C --&gt; C1[Per-product discount]
+    C --&gt; C2[Customer-specific discount]
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>Tipe</th>
+<th>Route</th>
+<th>Deskripsi</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Coupon</td>
+<td><code>/coupons</code></td>
+<td>Kode promo</td>
+</tr>
+<tr>
+<td>Discount Package</td>
+<td><code>/discount-packages</code></td>
+<td>Paket bundling</td>
+</tr>
+<tr>
+<td>Discount Product</td>
+<td><code>/discount-products</code></td>
+<td>Diskon per produk</td>
+</tr>
+</tbody></table>
+<hr>
+<h3>Customer Loyalty Program</h3>
+<pre><code class="language-mermaid">flowchart LR
+    T[Transaction] --&gt; P[Calculate Points]
+    P --&gt; C[Add to Customer]
+    C --&gt; R[Redeem Points]
+    R --&gt; D[Get Discount]
+</code></pre>
+<hr>
+<h3>Table Management (Resto/Cafe)</h3>
+<pre><code class="language-mermaid">graph TD
+    T[Tables] --&gt; S{Status}
+    S --&gt;|Available| A[🟢 Kosong]
+    S --&gt;|Occupied| B[🔴 Terisi]
+    S --&gt;|Reserved| C[🟡 Dipesan]
+    
+    A --&gt; QR[Generate QR Code]
+    QR --&gt; SCAN[Customer Scan]
+    SCAN --&gt; ORDER[Self Order]
+    ORDER --&gt; B
+</code></pre>
+<hr>
+<h2>🔐 Role &amp; Permission Matrix</h2>
+<table>
+<thead>
+<tr>
+<th>Role</th>
+<th align="center">Dashboard</th>
+<th align="center">POS</th>
+<th align="center">Kitchen</th>
+<th align="center">Products</th>
+<th align="center">Orders</th>
+<th align="center">Transactions</th>
+<th align="center">Reports</th>
+<th align="center">Settings</th>
+<th align="center">Users</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Super Admin</td>
+<td align="center">✅</td>
+<td align="center">✅</td>
+<td align="center">✅</td>
+<td align="center">✅</td>
+<td align="center">✅</td>
+<td align="center">✅</td>
+<td align="center">✅</td>
+<td align="center">✅</td>
+<td align="center">✅</td>
+</tr>
+<tr>
+<td>Manager</td>
+<td align="center">✅</td>
+<td align="center">❌</td>
+<td align="center">❌</td>
+<td align="center">✅</td>
+<td align="center">✅</td>
+<td align="center">✅</td>
+<td align="center">✅</td>
+<td align="center">❌</td>
+<td align="center">❌</td>
+</tr>
+<tr>
+<td>Kasir</td>
+<td align="center">❌</td>
+<td align="center">✅</td>
+<td align="center">❌</td>
+<td align="center">❌</td>
+<td align="center">❌</td>
+<td align="center">❌</td>
+<td align="center">❌</td>
+<td align="center">❌</td>
+<td align="center">❌</td>
+</tr>
+<tr>
+<td>Kitchen</td>
+<td align="center">❌</td>
+<td align="center">❌</td>
+<td align="center">✅</td>
+<td align="center">❌</td>
+<td align="center">❌</td>
+<td align="center">❌</td>
+<td align="center">❌</td>
+<td align="center">❌</td>
+<td align="center">❌</td>
+</tr>
+<tr>
+<td>Inventory</td>
+<td align="center">❌</td>
+<td align="center">❌</td>
+<td align="center">❌</td>
+<td align="center">✅</td>
+<td align="center">✅</td>
+<td align="center">❌</td>
+<td align="center">✅</td>
+<td align="center">❌</td>
+<td align="center">❌</td>
+</tr>
+<tr>
+<td>Finance</td>
+<td align="center">❌</td>
+<td align="center">❌</td>
+<td align="center">❌</td>
+<td align="center">❌</td>
+<td align="center">❌</td>
+<td align="center">✅</td>
+<td align="center">✅</td>
+<td align="center">❌</td>
+<td align="center">❌</td>
+</tr>
+</tbody></table>
+<hr>
+<h2>📁 Struktur Data Utama</h2>
+<h3>Entity Relationship Overview</h3>
+<pre><code class="language-mermaid">erDiagram
+    USER ||--o{ TRANSACTION : creates
+    USER ||--o{ CASHIER_SHIFT : opens
+    CASHIER_SHIFT ||--o{ TRANSACTION : contains
+    TRANSACTION ||--o{ TRANSACTION_DETAIL : has
+    TRANSACTION_DETAIL }o--|| PRODUCT : references
+    TRANSACTION ||--o{ TRANSACTION_KITCHEN : sends
+    TRANSACTION_KITCHEN ||--o{ TRANSACTION_KITCHEN_ITEM : contains
+    TRANSACTION ||--o| TABLE : uses
+    TRANSACTION ||--o| CUSTOMER : belongs_to
+    CUSTOMER ||--o{ CUSTOMER_POINT : earns
+    PRODUCT }o--|| CATEGORY : belongs_to
+    PRODUCT ||--o{ PRODUCT_VARIANT : has
+    PRODUCT }o--|| UNIT : uses
+    ORDER ||--o{ ORDER_DETAIL : has
+    ORDER }o--|| SUPPLIER : from
+    ORDER_DETAIL }o--|| MATERIAL : references
+    EXPENSE }o--|| EXPENSE_SUBCATEGORY : categorized
+    EXPENSE_SUBCATEGORY }o--|| EXPENSE_CATEGORY : belongs_to
+</code></pre>
+<hr>
+<h2>📝 Kesimpulan</h2>
+<p>Sistem KasPOS mengintegrasikan:</p>
+<ol>
+<li><strong>Front Office</strong>: Operasional harian dengan POS, Kitchen Display, dan self-ordering</li>
+<li><strong>Back Office</strong>: Manajemen inventory, keuangan, dan reporting</li>
+<li><strong>Role-based Access</strong>: Kontrol akses berdasarkan role pengguna</li>
+<li><strong>Real-time Updates</strong>: Kitchen Display System untuk koordinasi dapur</li>
+<li><strong>Comprehensive Reporting</strong>: Laporan lengkap untuk analisis bisnis</li>
+</ol>
+<p>Setiap role memiliki workflow yang terintegrasi untuk memastikan operasional bisnis berjalan lancar dari pesanan hingga pelaporan keuangan.</p>
