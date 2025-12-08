@@ -40,12 +40,16 @@ class HomeController extends Controller
 
     public function index(Request $request)
     {
+        // Get table from URL parameter (best practice for QR code ordering)
         $table = null;
-        if ($request->session()->has('table_id')) {
-            $table = [
-                'id'     => $request->session()->get('table_id'),
-                'number' => $request->session()->get('table_number'),
-            ];
+        if ($request->has('table')) {
+            $tableModel = Table::find($request->table);
+            if ($tableModel) {
+                $table = [
+                    'id'     => $tableModel->id,
+                    'number' => $tableModel->number,
+                ];
+            }
         }
 
         $filters = [
@@ -248,11 +252,7 @@ class HomeController extends Controller
 
     public function table(Request $request, Table $table)
     {
-        if (!$request->session()->has('table_id')) {
-            $request->session()->put('table_id', $table->id);
-            $request->session()->put('table_number', $table->number);
-        }
-
-        return to_route('home');
+        // Redirect to home with table parameter in URL (stateless approach)
+        return redirect()->route('home', ['table' => $table->id]);
     }
 }

@@ -76,6 +76,7 @@ export default function Welcome() {
             {
                 search: search || undefined,
                 category: category || undefined,
+                table: table?.id || undefined, // Preserve table in URL
                 ...extra,
             },
             { preserveState: true, preserveScroll: true, replace: true }
