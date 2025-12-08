@@ -57,7 +57,7 @@ class CategoryController extends Controller implements HasMiddleware
         // upload file
         if($request->hasFile('image')){
             $image = $request->file('image');
-            $image->storeAs('categories', $image->hashName());
+            $image->storeAs('categories', $image->hashName(), 'public');
         }
 
         // create new category
@@ -81,7 +81,7 @@ class CategoryController extends Controller implements HasMiddleware
             Storage::disk('public')->delete('categories/'.basename($category->image));
 
             $image = $request->file('image');
-            $image->storeAs('categories', $image->hashName());
+            $image->storeAs('categories', $image->hashName(), 'public');
 
             $category->update([
                 'image' => $image->hashName()
