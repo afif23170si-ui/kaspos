@@ -107,7 +107,7 @@ class DiscountPackageController extends Controller implements HasMiddleware
              // upload file
             if($request->hasFile('image')){
                 $image = $request->file('image');
-                $image->storeAs('discount-packages', $image->hashName());
+                $image->storeAs('discount-packages', $image->hashName(), 'public');
             }
 
             // create discount package
@@ -227,7 +227,7 @@ class DiscountPackageController extends Controller implements HasMiddleware
                 Storage::disk('public')->delete('discount-packages/'.basename($discountPackage->image));
 
                 $image = $request->file('image');
-                $image->storeAs('discount-packages', $image->hashName());
+                $image->storeAs('discount-packages', $image->hashName(), 'public');
 
                 $discountPackage->update([
                     'image' => $image->hashName()

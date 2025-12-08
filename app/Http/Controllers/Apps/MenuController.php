@@ -79,7 +79,7 @@ class MenuController extends Controller implements HasMiddleware
         // upload file
         if($request->hasFile('image')){
             $image = $request->file('image');
-            $image->storeAs('menus', $image->hashName());
+            $image->storeAs('menus', $image->hashName(), 'public');
         }
 
         // create new menu
@@ -174,7 +174,7 @@ class MenuController extends Controller implements HasMiddleware
             Storage::disk('public')->delete('categories/'.basename($menu->image));
 
             $image = $request->file('image');
-            $image->storeAs('menus', $image->hashName());
+            $image->storeAs('menus', $image->hashName(), 'public');
 
             $menu->update([
                 'image' => $image->hashName()

@@ -83,7 +83,7 @@ class ProductController extends Controller implements HasMiddleware
             // upload file
             if($request->hasFile('image')){
                 $image = $request->file('image');
-                $image->storeAs('products', $image->hashName());
+                $image->storeAs('products', $image->hashName(), 'public');
             }
 
             // create new product
@@ -281,7 +281,7 @@ class ProductController extends Controller implements HasMiddleware
                 Storage::disk('public')->delete('products/'.basename($product->image));
 
                 $image = $request->file('image');
-                $image->storeAs('products', $image->hashName());
+                $image->storeAs('products', $image->hashName(), 'public');
 
                 $product->update([
                     'image' => $image->hashName()

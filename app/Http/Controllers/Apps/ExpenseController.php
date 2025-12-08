@@ -95,7 +95,7 @@ class ExpenseController extends Controller
             if ($request->hasFile('file')) {
                 $file = $request->file('file');
                 $fileName = $file->hashName();
-                $file->storeAs('expense', $fileName);
+                $file->storeAs('expense', $fileName, 'public');
             }
 
             // create expense
@@ -202,7 +202,7 @@ class ExpenseController extends Controller
             if ($request->hasFile('file')) {
                 $file = $request->file('file');
                 $fileName = $file->hashName();
-                $file->storeAs('expense', $fileName);
+                $file->storeAs('expense', $fileName, 'public');
             }
 
             // create expense
