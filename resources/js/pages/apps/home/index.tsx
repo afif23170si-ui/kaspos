@@ -232,8 +232,8 @@ export default function Welcome() {
             <div className="min-h-screen bg-white text-black dark:bg-[#0a0a0a] dark:text-white px-4">
                 <div className="w-full max-w-screen-2xl mx-auto flex flex-col">
 
-                    {/* Header */}
-                    <header className="mb-4 w-full border-b border-gray-200 dark:border-gray-700">
+                    {/* Header - Sticky */}
+                    <header className="sticky top-0 z-50 mb-4 w-full border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-[#0a0a0a] shadow-sm">
                         <nav className="flex justify-between items-center py-3 px-2 flex-wrap gap-2">
                             <div className="text-lg font-bold">{appName}</div>
                             <div className="flex items-center gap-4 flex-wrap justify-end">
