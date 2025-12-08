@@ -229,13 +229,11 @@ export default function Welcome() {
         <>
             <Toaster/>
             <Head title="Welcome" />
-            <div className="min-h-screen bg-white text-black dark:bg-[#0a0a0a] dark:text-white px-4">
-                <div className="w-full max-w-screen-2xl mx-auto flex flex-col">
-
-                    {/* Header - Sticky */}
-                    <header className="sticky top-0 z-50 mb-4 w-full border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-[#0a0a0a] shadow-sm">
-                        <nav className="flex justify-between items-center py-3 px-2 flex-wrap gap-2">
-                            <div className="text-lg font-bold">{appName}</div>
+            <div className="min-h-screen bg-white text-black dark:bg-[#0a0a0a] dark:text-white">
+                {/* Header - Sticky & Full Width */}
+                <header className="sticky top-0 z-50 w-full border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-[#0a0a0a] shadow-sm">
+                    <nav className="max-w-screen-2xl mx-auto flex justify-between items-center py-3 px-4 flex-wrap gap-2">
+                        <div className="text-lg font-bold">{appName}</div>
                             <div className="flex items-center gap-4 flex-wrap justify-end">
                                 <button
                                     onClick={() => setShowCustomerDialog(true)}
@@ -280,8 +278,8 @@ export default function Welcome() {
                         </nav>
                     </header>
 
-                    {/* Main */}
-                    <main className="w-full">
+                    {/* Main Content - Centered */}
+                    <main className="w-full max-w-screen-2xl mx-auto px-4 mt-4">
                         <div className="text-center mb-6">
                             <h1 className="text-xl font-semibold">Selamat Datang!</h1>
                             <p className="text-sm text-gray-500 dark:text-gray-400">Silakan pilih produk yang ingin dipesan.</p>
@@ -587,7 +585,6 @@ export default function Welcome() {
                             </DialogFooter>
                         </DialogContent>
                     </Dialog>
-                </div>
             </div>
         </>
     );
