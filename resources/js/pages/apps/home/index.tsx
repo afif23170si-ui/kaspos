@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import type { SharedData } from '@/types';
 import {
@@ -66,6 +66,13 @@ export default function Welcome() {
     const [customerName, setCustomerName] = useState('');
     const tableNumber = table?.number ?? '';
     const [showCustomerDialog, setShowCustomerDialog] = useState(false);
+
+    // Auto-show customer name dialog when scanning QR code (table exists but name is empty)
+    useEffect(() => {
+        if (table?.id && !customerName) {
+            setShowCustomerDialog(true);
+        }
+    }, [table?.id]); // Only run when table changes (new QR scan)
 
     const [search, setSearch] = useState<string>(filters.search ?? '');
     const [category, setCategory] = useState<number | ''>(filters.category ?? '');
@@ -542,41 +549,40 @@ export default function Welcome() {
                     <Dialog open={showCustomerDialog} onOpenChange={setShowCustomerDialog}>
                         <DialogContent className="sm:max-w-sm">
                             <DialogHeader>
-                                <DialogTitle>Edit Pelanggan</DialogTitle>
-                                <DialogDescription>Masukkan nama pelanggan dan nomor meja.</DialogDescription>
+                                <DialogTitle className="text-center text-xl">
+                                    👋 Selamat Datang!
+                                </DialogTitle>
+                                <DialogDescription className="text-center">
+                                    {tableNumber 
+                                        ? `Anda berada di Meja ${tableNumber}. Silakan masukkan nama Anda untuk melanjutkan pemesanan.`
+                                        : 'Silakan masukkan nama Anda untuk melanjutkan.'}
+                                </DialogDescription>
                             </DialogHeader>
-                            <div className="space-y-3">
+                            <div className="space-y-4 py-4">
                                 <div>
-                                    <label className="text-sm block mb-1">Nama</label>
+                                    <label className="text-sm font-medium block mb-2">Nama Anda</label>
                                     <input
                                         type="text"
-                                        className="w-full border px-3 py-2 rounded text-sm bg-white dark:bg-gray-900 dark:border-gray-700"
+                                        className="w-full border px-4 py-3 rounded-lg text-base bg-white dark:bg-gray-900 dark:border-gray-700 focus:ring-2 focus:ring-green-500 focus:border-green-500"
                                         value={customerName}
                                         onChange={(e) => setCustomerName(e.target.value)}
-                                        placeholder="Contoh: Budi"
+                                        placeholder="Masukkan nama Anda"
+                                        autoFocus
                                     />
-                                </div>
-                                <div>
-                                    <label className="text-sm block mb-1">No Meja</label>
-                                    <input
-                                        type="text"
-                                        className="w-full border px-3 py-2 rounded text-sm bg-gray-200 dark:bg-gray-800 dark:border-gray-700"
-                                        value={tableNumber}
-                                        readOnly
-                                    />
-                                    {!tableNumber && (
-                                        <p className="text-xs text-amber-600 mt-1">
-                                            Scan QR pada meja untuk mengisi nomor meja otomatis.
-                                        </p>
-                                    )}
                                 </div>
                             </div>
-                            <DialogFooter className="mt-4">
+                            <DialogFooter>
                                 <button
-                                    onClick={() => setShowCustomerDialog(false)}
-                                    className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700 text-sm font-medium"
+                                    onClick={() => {
+                                        if (!customerName.trim()) {
+                                            return; // Don't close if name is empty
+                                        }
+                                        setShowCustomerDialog(false);
+                                    }}
+                                    disabled={!customerName.trim()}
+                                    className="w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 text-base font-medium disabled:bg-gray-400 disabled:cursor-not-allowed"
                                 >
-                                    Simpan
+                                    Mulai Pesan
                                 </button>
                             </DialogFooter>
                         </DialogContent>
