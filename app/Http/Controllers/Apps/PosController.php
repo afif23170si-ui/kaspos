@@ -400,7 +400,7 @@ class PosController extends Controller implements HasMiddleware
         $cashierShiftId = $request->cashier_shift_id;
         $endCash = $request->end_cash;
 
-        $cashierShift = CashierShift::find($cashierShiftId);
+        $cashierShift = CashierShift::findOrFail($cashierShiftId);
 
         $cashierShift->update([
             'ending_cash' => $endCash,
