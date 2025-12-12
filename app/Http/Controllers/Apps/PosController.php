@@ -1213,6 +1213,157 @@ class PosController extends Controller implements HasMiddleware
         ]);
     }
 
+    public function kitchenReceiptBluetooth(Request $request)
+    {
+        $request->validate(['invoice' => ['required', 'string']]);
+
+        $transaction = Transaction::with([
+            'transaction_details.items' => function ($morphTo) {
+                $morphTo->morphWith([
+                    ProductVariant::class => [
+                        'product',
+                        'product_variant_values',
+                        'product_variant_values.variant_value',
+                        'product_variant_values.variant_value.variant_option',
+                    ],
+                    Menu::class => ['category'],
+                    DiscountPackage::class => [
+                        'discount_package_items.items' => function ($morphTo) {
+                            $morphTo->morphWith([
+                                ProductVariant::class => [
+                                    'product',
+                                    'product_variant_values',
+                                    'product_variant_values.variant_value',
+                                ],
+                            ]);
+                        },
+                    ],
+                ]);
+            },
+            'table',
+            'customer',
+        ])->where('invoice', $request->invoice)->firstOrFail();
+
+        $codes = ['PRNT_KITCHEN', 'NAME'];
+        $settings = Setting::where('is_active', true)
+            ->whereIn('code', $codes)
+            ->pluck('value', 'code');
+
+        $printerName = (string) ($settings['PRNT_KITCHEN'] ?? '');
+        $storeName   = (string) ($settings['NAME'] ?? 'DAPUR');
+
+        $W = (int) (config('printer.width') ?? 32);
+
+        $variantLabel = function (ProductVariant $pv) {
+            $parts = $pv->product_variant_values
+                ->map(fn($v) => ($v->variant_value->variant_option->name ?? '') . ': ' . ($v->variant_value->name ?? ''))
+                ->filter()
+                ->values();
+            return $parts->isNotEmpty() ? ' [' . $parts->implode(', ') . ']' : '';
+        };
+
+        $lines = $transaction->transaction_details->map(function ($d) use ($variantLabel) {
+            $name = '';
+            if ($d->items_type === ProductVariant::class) {
+                $pv   = $d->items;
+                $name = ($pv->product->name ?? 'Variant') . $variantLabel($pv);
+            } elseif ($d->items_type === Menu::class) {
+                $name = $d->items->name ?? 'Menu';
+            } elseif ($d->items_type === DiscountPackage::class) {
+                $name = $d->items->name ?? 'Paket';
+            } else {
+                $name = class_basename($d->items_type);
+            }
+
+            return [
+                'qty'  => (int) $d->quantity,
+                'name' => $name,
+                'note' => $d->note ?? '',
+            ];
+        })->values()->all();
+
+        $orderType = match ($transaction->transaction_type) {
+            'dine_in'  => 'Makan ditempat',
+            'platform' => ucfirst((string) $transaction->platform),
+            'takeaway' => 'Takeaway',
+            default    => ucfirst((string) $transaction->transaction_type),
+        };
+
+        $tableNo      = $transaction->table->number ?? null;
+        $customerName = $transaction->customer->name ?? 'Umum';
+
+        $ESC = "\x1B";
+        $GS  = "\x1D";
+        $buf = "";
+
+        // Initialize and center
+        $buf .= $ESC . "@";
+        $buf .= $ESC . "a" . chr(1); // center
+
+        // Header
+        $buf .= $ESC . "E" . chr(1); // bold on
+        $buf .= "*** PESANAN DAPUR ***\n";
+        $buf .= $ESC . "E" . chr(0); // bold off
+        $buf .= str_repeat("-", $W) . "\n";
+
+        // Left align
+        $buf .= $ESC . "a" . chr(0);
+
+        // Order info
+        $kvp = function (string $label, string $value) use ($W) {
+            $keyWidth = 10;
+            $left  = str_pad($label, $keyWidth, ' ', STR_PAD_RIGHT) . ': ';
+            $avail = $W - mb_strlen($left);
+            return $left . mb_substr($value, 0, $avail) . "\n";
+        };
+
+        $buf .= $kvp('Invoice', (string) $transaction->invoice);
+        $buf .= $kvp('Waktu', now()->format('d/m/Y H:i'));
+        $buf .= $kvp('Jenis', $orderType);
+        if ($tableNo)      $buf .= $kvp('Meja', (string) $tableNo);
+        if ($customerName) $buf .= $kvp('Pelanggan', $customerName);
+
+        $buf .= str_repeat("-", $W) . "\n";
+
+        // Items - bigger emphasis
+        $buf .= $ESC . "E" . chr(1); // bold
+        foreach ($lines as $idx => $it) {
+            $num = $idx + 1;
+            $buf .= "{$num}. {$it['qty']}x {$it['name']}\n";
+            if (!empty($it['note'])) {
+                $buf .= $ESC . "E" . chr(0); // bold off for note
+                $buf .= "   >> {$it['note']}\n";
+                $buf .= $ESC . "E" . chr(1); // bold on again
+            }
+        }
+        $buf .= $ESC . "E" . chr(0); // bold off
+
+        $buf .= str_repeat("-", $W) . "\n";
+
+        // Total items
+        $totalQty = array_reduce($lines, fn($c, $i) => $c + $i['qty'], 0);
+        $buf .= "Total Item: {$totalQty}\n";
+
+        $buf .= "\n";
+        $buf .= $ESC . "a" . chr(1); // center
+        $buf .= "[ ] Selesai\n";
+        $buf .= "\n";
+
+        // Cut
+        $buf .= $GS . "V" . chr(1);
+
+        return response()->json([
+            'printer' => $printerName,
+            'width'   => $W,
+            'raw'     => base64_encode($buf),
+            'meta'    => [
+                'invoice'    => (string) $transaction->invoice,
+                'created_at' => now()->toIso8601String(),
+                'table'      => $tableNo,
+            ],
+        ]);
+    }
+
     public function openTable(Request $request)
     {
         $request->validate(['invoice' => ['required', 'string']]);

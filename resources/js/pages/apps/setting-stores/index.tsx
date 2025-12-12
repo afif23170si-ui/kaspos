@@ -474,9 +474,14 @@ export default function Index() {
                                                     <span className="text-foreground italic">Contoh: 2000</span> (Rp 2.000)
                                                 </li>
                                                 <li>
-                                                    <b>PRNT (Printer)</b> → tuliskan nama printer yang digunakan didalam kolom value.
+                                                    <b>PRNT (Printer Kasir)</b> → tuliskan nama printer kasir untuk struk pelanggan.
                                                     <br />
                                                     <span className="text-foreground italic">Contoh: POS-58</span>
+                                                </li>
+                                                <li>
+                                                    <b>PRNT_KITCHEN (Printer Dapur)</b> → tuliskan nama printer dapur untuk order slip.
+                                                    <br />
+                                                    <span className="text-foreground italic">Contoh: Kitchen-58</span>
                                                 </li>
                                             </ul>
                                         </div>
@@ -526,7 +531,8 @@ export default function Index() {
                                                                     <SelectItem value="PJK">Pajak</SelectItem>
                                                                     <SelectItem value="OLS">Online Shop</SelectItem>
                                                                     <SelectItem value="OPR">Biaya Layanan</SelectItem>
-                                                                    <SelectItem value="PRNT">Printer</SelectItem>
+                                                                    <SelectItem value="PRNT">Printer Kasir</SelectItem>
+                                                                    <SelectItem value="PRNT_KITCHEN">Printer Dapur</SelectItem>
                                                                 </SelectContent>
                                                             </Select>
                                                             {(errors as any)[`settings.${i}.code`] && (

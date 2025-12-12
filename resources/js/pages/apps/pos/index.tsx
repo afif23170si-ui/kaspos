@@ -28,6 +28,7 @@ import { Shift } from '@/types/shift';
 import BarcodeScannerHtml5 from '@/components/barcode-scanner-html5';
 import { Card, CardContent } from '@/components/ui/card';
 import PrintBluetoothButton from '@/components/PrintBluetoothButton';
+import PrintKitchenBluetoothButton, { printKitchenBluetooth } from '@/components/PrintKitchenBluetoothButton';
 
 interface IndexProps {
     cashiers: Cashier[];
@@ -1135,6 +1136,10 @@ export default function Index() {
 
     const handleKitchen = async () => {
         try {
+            // Auto-print ke printer dapur via Bluetooth
+            await printKitchenBluetooth(data.lastTransaction.invoice);
+            
+            // Kirim ke dapur (database)
             await axios.post(route('apps.pos.send-kitchen'), { invoice: data.lastTransaction.invoice });
             toast('Pesanan berhasil dikirim ke dapur');
             setData('modalTransaction', !data.modalTransaction);
@@ -2908,6 +2913,12 @@ export default function Index() {
                                         <Printer className="size-4" /> Windows Print
                                     </Button>
                                     <PrintBluetoothButton invoice={data?.lastTransaction?.invoice} endpoint={route("apps.pos.print-receipt-bluetooth", data?.lastTransaction?.invoice)} />
+                                </div>
+                                <div className='flex flex-row gap-2 items-center w-full'>
+                                    <PrintKitchenBluetoothButton 
+                                        invoice={data?.lastTransaction?.invoice} 
+                                        endpoint={route("apps.pos.print-kitchen-bluetooth", data?.lastTransaction?.invoice)} 
+                                    />
                                 </div>
                             </div>
                             <div className='flex flex-row gap-2 items-center mt-4'>

@@ -55,6 +55,7 @@ Route::group(['as' => 'apps.', 'middleware' => ['auth']], function(){
         Route::get('/cashier-transactions', 'cashierTransaction')->name('cashier-transactions');
         Route::post('/print-receipt', 'receipt')->name('print-receipt');
         Route::get('/print-receipt-bluetooth', 'receiptBluetooth')->name('print-receipt-bluetooth');
+        Route::get('/print-kitchen-bluetooth', 'kitchenReceiptBluetooth')->name('print-kitchen-bluetooth');
         Route::post('/update-table', 'openTable')->name('update-table');
         Route::post('/send-kitchen', 'sendKitchen')->name('send-kitchen');
         Route::post('/discount-per-item', 'discountPerItem')->name('dicount-per-items');
