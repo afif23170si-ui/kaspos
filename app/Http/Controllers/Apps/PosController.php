@@ -1141,14 +1141,20 @@ class PosController extends Controller implements HasMiddleware
         $GS = "\x1D";
         $buf = "";
 
-        $buf .= $ESC . "@";
-        $buf .= $ESC . "a" . chr(1);
-        $buf .= $storeName . "\n";
+        // Initialize printer
+        $buf .= $ESC . "@";  // Reset printer
+        
+        // ===== HEADER =====
+        $buf .= $ESC . "a" . chr(1);  // Center align
+        $buf .= $ESC . "!" . chr(16); // Double height for store name
+        $buf .= strtoupper($storeName) . "\n";
+        $buf .= $ESC . "!" . chr(0);  // Normal text
         if ($storeAddr)  $buf .= $storeAddr . "\n";
         if ($storePhone) $buf .= "Telp: " . $storePhone . "\n";
-        $buf .= str_repeat("-", $W) . "\n";
+        $buf .= str_repeat("=", $W) . "\n";
 
-        $buf .= $ESC . "a" . chr(0);
+        // ===== TRANSACTION INFO =====
+        $buf .= $ESC . "a" . chr(0);  // Left align
         $labels   = ['Invoice', 'Tanggal', 'Jenis', 'Pelanggan', 'Meja', 'Kasir'];
         $keyWidth = max(array_map('mb_strlen', $labels));
 
@@ -1174,12 +1180,15 @@ class PosController extends Controller implements HasMiddleware
 
         $buf .= str_repeat("-", $W) . "\n";
 
+        // ===== ITEMS =====
         foreach ($lines as $it) {
             $buf .= $wrap($it['name'], $W);
-            $buf .= $cols2("{$it['qty']} x " . $idr($it['price']), $idr($it['amount']), $W);
+            $buf .= $cols2("  {$it['qty']} x " . $idr($it['price']), $idr($it['amount']), $W);
         }
 
         $buf .= str_repeat("-", $W) . "\n";
+        
+        // ===== SUBTOTAL & DISCOUNT =====
         $buf .= $cols2('Subtotal', $idr($subtotal), $W);
         if ($discount) {
             $buf .= $cols2('Diskon', '-' . $idr($discount), $W);
@@ -1188,17 +1197,31 @@ class PosController extends Controller implements HasMiddleware
             $buf .= $cols2($t['label'], $idr($t['value']), $W);
         }
 
-        $buf .= $ESC . "E" . chr(1);
+        // ===== TOTAL (Bold) =====
+        $buf .= str_repeat("=", $W) . "\n";
+        $buf .= $ESC . "E" . chr(1);  // Bold on
+        $buf .= $ESC . "!" . chr(16); // Double height
         $buf .= $cols2('TOTAL', $idr($total), $W);
-        $buf .= $ESC . "E" . chr(0);
+        $buf .= $ESC . "!" . chr(0);  // Normal 
+        $buf .= $ESC . "E" . chr(0);  // Bold off
+        $buf .= str_repeat("=", $W) . "\n";
 
-        $buf .= str_repeat("-", $W) . "\n";
-        $payLabel = 'Bayar ' . ($transaction->payment_method === 'cash' ? 'Cash' : 'Transfer');
+        // ===== PAYMENT =====
+        $payLabel = 'Bayar (' . ($transaction->payment_method === 'cash' ? 'Cash' : 'Transfer') . ')';
         $buf .= $cols2($payLabel, $idr($paid), $W);
         $buf .= $cols2('Kembali', $idr($change), $W);
 
-        $buf .= "\nTerima kasih!\n";
+        // ===== FOOTER =====
         $buf .= "\n";
+        $buf .= $ESC . "a" . chr(1);  // Center align
+        $buf .= "--------------------------------\n";
+        $buf .= "Terima kasih atas kunjungan Anda\n";
+        $buf .= "Barang yang sudah dibeli tidak\n";
+        $buf .= "dapat ditukar/dikembalikan\n";
+        $buf .= "--------------------------------\n";
+        $buf .= "\n\n";
+        
+        // Cut paper
         $buf .= $GS . "V" . chr(1);
 
         return response()->json([

@@ -2895,6 +2895,13 @@ export default function Index() {
                                 </CardContent>
                             </Card>
                             <div className='flex flex-col gap-2 mt-4'>
+                                {/* Browser Print - with logo & full layout */}
+                                <div className='flex flex-row gap-2 items-center w-full'>
+                                    <Button type='button' onClick={() => handlePrint()} variant={'outline'} className='w-full'>
+                                        <Printer className='size-4' /> Cetak (dengan Logo)
+                                    </Button>
+                                </div>
+                                {/* Bluetooth/QZ Tray Print - faster, no popup */}
                                 <div className='flex flex-row gap-2 items-center w-full'>
                                     <PrintBluetoothButton 
                                         invoice={data?.lastTransaction?.invoice} 
