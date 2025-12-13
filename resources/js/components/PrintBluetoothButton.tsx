@@ -9,78 +9,46 @@ declare global { interface Window { qz?: any } }
 
 type Props = {
     invoice: string | undefined;
-    endpoint: string;
+    endpoint?: string;
 };
 
 function isAndroid() {
     return /Android/i.test(navigator.userAgent);
 }
 
-export default function PrintBluetoothButton({ invoice, endpoint }: Props) {
-    const [qzReady, setQzReady] = React.useState<"idle" | "loading" | "ready" | "error">("idle");
-    const [loading, setLoading] = React.useState(false);
-    const [lastErr, setLastErr] = React.useState<string | null>(null);
-
-    React.useEffect(() => {
-        if (isAndroid()) { setQzReady("idle"); return; }
-
-        let cancelled = false;
-        (async () => {
-            try {
-                setQzReady("loading");
-
-                // Use QZ Tray 2.2.4 (stable release)
-                const url = "https://cdn.jsdelivr.net/npm/qz-tray@2.2.4/qz-tray.min.js";
-                if (!window.qz) {
-                    await new Promise<void>((resolve, reject) => {
-                        const existing = document.querySelector(`script[src="${url}"]`) as HTMLScriptElement | null;
-                        if (existing) {
-                            existing.addEventListener("load", () => resolve(), { once: true });
-                            existing.addEventListener("error", () => reject(new Error("Gagal memuat qz-tray.js")), { once: true });
-                        } else {
-                            const s = document.createElement("script");
-                            s.src = url;
-                            s.async = true;
-                            s.onload = () => resolve();
-                            s.onerror = () => reject(new Error("Gagal memuat qz-tray.js"));
-                            document.body.appendChild(s);
-                        }
-                    });
-                }
-
-                if (cancelled) return;
-                if (!window.qz) throw new Error("QZ Tray belum tersedia di window");
-
-                // DEV cert/signature (ganti di production)
-                try {
-                    window.qz.security.setCertificatePromise(() =>
-                        Promise.resolve("-----BEGIN CERTIFICATE-----\nDEV CERT ONLY\n-----END CERTIFICATE-----")
-                    );
-                    window.qz.security.setSignaturePromise(() => Promise.resolve(null));
-                } catch { /* ignore */ }
-
-                try {
-                    const isHttps = window.location.protocol === "https:";
-                    window.qz.websocket.setUsingSecure?.(isHttps);
-                    window.qz.websocket.setHostname?.("127.0.0.1");
-                    window.qz.websocket.setPort?.(8181);
-                } catch { /* ignore */ }
-
-                if (!cancelled) setQzReady("ready");
-            } catch (e: any) {
-                if (!cancelled) {
-                    setLastErr(e?.message || String(e));
-                    setQzReady("error");
-                    console.error("[QZ preload error]", e);
-                }
+// Load QZ Tray script once
+let qzLoaded = false;
+async function loadQzTray(): Promise<void> {
+    if (qzLoaded && window.qz) return;
+    
+    return new Promise((resolve, reject) => {
+        // Use direct QZ Tray file from their CDN
+        const url = "https://cdn.jsdelivr.net/npm/qz-tray@2.2.5/qz-tray.min.js";
+        const existing = document.querySelector(`script[src*="qz-tray"]`) as HTMLScriptElement | null;
+        
+        if (existing) {
+            if (window.qz) {
+                qzLoaded = true;
+                resolve();
+            } else {
+                existing.addEventListener("load", () => { qzLoaded = true; resolve(); }, { once: true });
+                existing.addEventListener("error", () => reject(new Error("Gagal memuat qz-tray.js")), { once: true });
             }
-        })();
-        return () => { cancelled = true; };
-    }, []);
+        } else {
+            const s = document.createElement("script");
+            s.src = url;
+            s.async = true;
+            s.onload = () => { qzLoaded = true; resolve(); };
+            s.onerror = () => reject(new Error("Gagal memuat qz-tray.js"));
+            document.body.appendChild(s);
+        }
+    });
+}
+
+export default function PrintBluetoothButton({ invoice, endpoint }: Props) {
+    const [loading, setLoading] = React.useState(false);
 
     const handlePrintBT = React.useCallback(async () => {
-        setLastErr(null);
-
         try {
             if (!invoice) {
                 alert("❌ Invoice kosong");
@@ -89,65 +57,62 @@ export default function PrintBluetoothButton({ invoice, endpoint }: Props) {
 
             setLoading(true);
 
-            let url = endpoint;
-            try {
-                if (typeof route === "function" && !endpoint) {
-                    url = route("apps.pos.print-receipt-bluetooth", { invoice });
-                }
-            } catch(e) {
-                console.log(e);
-            }
-
+            // Get print data from server
+            const url = endpoint || `/pos/print-receipt-bluetooth?invoice=${invoice}`;
+            console.log("[PrintBT] Fetching from:", url);
+            
             const { data } = await axios.get(url, { params: { invoice } });
+            console.log("[PrintBT] Server response:", { printer: data.printer, hasRaw: !!data.raw });
+            
             if (!data?.raw) throw new Error("Payload kosong dari server");
 
+            // Android - use RawBT app
             if (isAndroid()) {
                 const rawbtUri = `data:application/rawbt;base64,${data.raw}`;
                 window.location.href = rawbtUri;
-                // alert("✅ Struk dikirim ke RawBT (Android)");
                 return;
             }
 
+            // Desktop - use QZ Tray
+            await loadQzTray();
+            
             if (!window.qz) {
-                // alert("❌ QZ Tray belum siap. Pastikan aplikasi QZ Tray berjalan di komputer kasir.");
+                alert("❌ QZ Tray library tidak tersedia. Refresh halaman.");
                 return;
             }
 
-            try {
-                const isHttps = window.location.protocol === "https:";
-                window.qz.websocket.setUsingSecure?.(isHttps);
-                window.qz.websocket.setHostname?.("127.0.0.1");
-                window.qz.websocket.setPort?.(8181);
-            } catch(e) {
-                console.log(e);
-            }
+            console.log("[PrintBT] QZ Tray loaded, connecting...");
 
+            // Connect to QZ Tray
             if (!window.qz.websocket.isActive()) {
                 try {
                     await window.qz.websocket.connect();
-                } catch {
-                    await new Promise(r => setTimeout(r, 600));
+                } catch (connErr: any) {
+                    console.log("[PrintBT] First connect failed, retrying...", connErr.message);
+                    await new Promise(r => setTimeout(r, 1000));
                     await window.qz.websocket.connect();
                 }
             }
 
-            const cfg = window.qz.configs.create(data.printer || null);
-            await window.qz.print(cfg, [
-                { type: "raw", format: "base64", data: data.raw }
-            ]);
+            console.log("[PrintBT] Connected to QZ Tray, printing to:", data.printer);
 
-            // alert("✅ Struk berhasil dikirim ke printer (QZ Tray)");
+            // Create config and print
+            const config = window.qz.configs.create(data.printer);
+            const printData = [{ type: "raw", format: "base64", data: data.raw }];
+            
+            await window.qz.print(config, printData);
+            console.log("[PrintBT] Print sent successfully!");
+
         } catch (err: any) {
-            console.error("[handlePrintBT] error", err);
-            setLastErr(err?.message || String(err));
+            console.error("[PrintBT] Error:", err);
             alert("❌ Gagal print: " + (err?.message || err));
         } finally {
+            // Disconnect
             try {
-                if (window.qz?.websocket.isActive())
+                if (window.qz?.websocket?.isActive()) {
                     await window.qz.websocket.disconnect();
-            } catch(e) {
-                console.log(e);
-            }
+                }
+            } catch { /* ignore */ }
             setLoading(false);
         }
     }, [invoice, endpoint]);
@@ -159,7 +124,7 @@ export default function PrintBluetoothButton({ invoice, endpoint }: Props) {
                 variant="destructive"
                 className="w-full"
                 onClick={handlePrintBT}
-                disabled={loading || qzReady === "loading"}
+                disabled={loading}
             >
                 <Printer className="size-4 mr-2" />
                 {loading ? "Mencetak..." : "Cetak Struk Kasir"}
