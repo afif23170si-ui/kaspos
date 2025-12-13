@@ -413,11 +413,11 @@ export default function Welcome() {
                                         {/* Qty - Mobile Friendly with +/- buttons */}
                                         <div>
                                             <label className="text-sm block mb-2">Jumlah</label>
-                                            <div className="flex items-center justify-center gap-3">
+                                            <div className="flex items-center justify-between w-full">
                                                 <button
                                                     type="button"
                                                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                                                    className="w-12 h-12 flex items-center justify-center rounded-full border-2 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 active:bg-gray-200 dark:active:bg-gray-600 transition-colors"
+                                                    className="w-12 h-12 flex-shrink-0 flex items-center justify-center rounded-full border-2 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 active:bg-gray-200 dark:active:bg-gray-600 transition-colors"
                                                 >
                                                     <Minus size={20} />
                                                 </button>
@@ -426,12 +426,12 @@ export default function Welcome() {
                                                     min={1}
                                                     value={quantity}
                                                     onChange={(e) => setQuantity(Math.max(1, Number(e.target.value) || 1))}
-                                                    className="w-20 text-center text-xl font-semibold rounded border px-2 py-2 dark:bg-[#2a2a2a] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                                    className="flex-1 mx-3 text-center text-xl font-semibold rounded border px-2 py-2 dark:bg-[#2a2a2a] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                                 />
                                                 <button
                                                     type="button"
                                                     onClick={() => setQuantity(quantity + 1)}
-                                                    className="w-12 h-12 flex items-center justify-center rounded-full border-2 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 active:bg-gray-200 dark:active:bg-gray-600 transition-colors"
+                                                    className="w-12 h-12 flex-shrink-0 flex items-center justify-center rounded-full border-2 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 active:bg-gray-200 dark:active:bg-gray-600 transition-colors"
                                                 >
                                                     <Plus size={20} />
                                                 </button>
