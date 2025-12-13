@@ -1428,10 +1428,10 @@ export default function Index() {
                 width: 58mm;
             }
             .paper { 
-                width: 52mm; 
-                max-width: 52mm; 
+                width: 48mm; 
+                max-width: 48mm; 
                 margin: 0 auto; 
-                padding: 2mm 3mm 4mm 3mm;
+                padding: 2mm 5mm 4mm 3mm;
             }
         }
         </style>
