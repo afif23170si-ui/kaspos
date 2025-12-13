@@ -1353,21 +1353,19 @@ export default function Index() {
         <meta charset="utf-8" />
         <title>Struk ${tx.invoice ?? ''}</title>
         <style>
-        :root { --muted:#333; --line:#000; }
         * { box-sizing: border-box; }
-        body { font-family: DejaVu Sans, Arial, "Helvetica", "Liberation Sans", sans-serif; font-size: 10px; margin:0; padding:0; }
+        body { font-family: DejaVu Sans, Arial, "Helvetica", "Liberation Sans", sans-serif; font-size: 10px; margin:0; padding:0; color: #000; }
         .paper { width: 100%; max-width: 58mm; margin: 0 auto; padding: 2px 3px 6px; }
         .center { text-align: center; }
         h1 { font-size: 11px; margin: 0; font-weight: bold; }
-        .small { font-size: 9px; color: var(--muted); }
-        hr { border:0; border-top:1px dashed var(--line); margin: 6px 0; }
+        .small { font-size: 9px; }
+        hr { border:0; border-top:1px dashed #000; margin: 6px 0; }
         .section { font-size: 10px; }
         .row { display: flex; justify-content: space-between; margin: 2px 0; }
-        .row span:first-child { font-weight: 500; }
-        .row span:last-child { font-weight: 500; }
+        .row span { font-weight: 500; }
         .item { margin: 6px 0; }
         .item-name { font-size: 10px; font-weight: 600; }
-        .item-sub { display:flex; justify-content: space-between; font-size: 9px; color: var(--muted); margin-top: 1px; }
+        .item-sub { display:flex; justify-content: space-between; font-size: 9px; margin-top: 1px; }
         .logo { max-width: 60px; margin-bottom: 4px; }
         .table-badge { 
             display: inline-block;
@@ -1382,7 +1380,6 @@ export default function Index() {
         }
         .total-label { 
             font-size: 10px; 
-            color: var(--muted);
             margin-bottom: 2px;
         }
         .total-amount { 
@@ -1397,13 +1394,11 @@ export default function Index() {
         }
         .item-count {
             font-size: 9px;
-            color: var(--muted);
             margin-bottom: 3px;
         }
         .payment-section {
             font-size: 9px;
         }
-        .payment-section .row span:first-child { color: var(--muted); }
         @media print {
         @page { margin: 4mm 1mm 2mm 1mm; size: 58mm auto; }
         body { margin: 0; }
