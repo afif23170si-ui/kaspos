@@ -1354,53 +1354,40 @@ export default function Index() {
         <title>Struk ${tx.invoice ?? ''}</title>
         <style>
         :root { --muted:#333; --line:#000; }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { 
-            font-family: 'Courier New', Courier, 'Lucida Console', Monaco, monospace; 
-            font-size: 11px; 
-            line-height: 1.3;
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
-        }
-        .paper { 
-            width: 48mm; 
-            margin: 0 auto; 
-            padding: 2mm;
-        }
+        * { box-sizing: border-box; }
+        body { font-family: DejaVu Sans, Arial, "Helvetica", "Liberation Sans", sans-serif; font-size: 10px; margin:0; padding:0; }
+        .paper { width: 100%; max-width: 58mm; margin: 0 auto; padding: 2px 3px 6px; }
         .center { text-align: center; }
-        h1 { font-size: 13px; margin: 0 0 2px 0; font-weight: bold; letter-spacing: 0.5px; }
-        .small { font-size: 10px; color: var(--muted); }
-        hr { border:0; border-top:1px dashed var(--line); margin: 4px 0; }
+        h1 { font-size: 11px; margin: 0; font-weight: bold; }
+        .small { font-size: 9px; color: var(--muted); }
+        hr { border:0; border-top:1px dashed var(--line); margin: 6px 0; }
         .section { font-size: 10px; }
-        .row { display: flex; justify-content: space-between; margin: 2px 0; gap: 4px; }
-        .row span:first-child { color: var(--muted); flex-shrink: 0; }
-        .row span:last-child { font-weight: 600; text-align: right; word-break: break-all; }
-        .item { margin: 4px 0; }
-        .item-name { font-size: 10px; font-weight: 600; word-wrap: break-word; }
+        .row { display: flex; justify-content: space-between; margin: 2px 0; }
+        .row span:first-child { color: var(--muted); }
+        .row span:last-child { font-weight: 500; }
+        .item { margin: 6px 0; }
+        .item-name { font-size: 10px; font-weight: 600; }
         .item-sub { display:flex; justify-content: space-between; font-size: 9px; color: var(--muted); margin-top: 1px; }
-        .logo { max-width: 50mm; max-height: 15mm; margin-bottom: 3px; }
+        .logo { max-width: 60px; margin-bottom: 4px; }
         .table-badge { 
             display: inline-block;
             border: 1px solid #000; 
-            padding: 0 4px; 
+            padding: 1px 6px; 
             font-weight: bold;
-            font-size: 10px;
+            font-size: 11px;
         }
         .total-section { 
             text-align: center; 
-            padding: 4px 0;
-            border: 1px dashed #000;
-            margin: 4px 0;
+            padding: 6px 0;
         }
         .total-label { 
             font-size: 10px; 
             color: var(--muted);
-            margin-bottom: 1px;
+            margin-bottom: 2px;
         }
         .total-amount { 
             font-size: 14px; 
-            font-weight: bold;
-            letter-spacing: 0.5px;
+            font-weight: bold; 
         }
         .summary-row { 
             display: flex; 
@@ -1414,25 +1401,13 @@ export default function Index() {
             margin-bottom: 3px;
         }
         .payment-section {
-            font-size: 10px;
+            font-size: 9px;
         }
         .payment-section .row span:first-child { color: var(--muted); }
         @media print {
-            @page { 
-                margin: 0; 
-                size: 58mm auto; 
-            }
-            html, body { 
-                margin: 0; 
-                padding: 0;
-                width: 58mm;
-            }
-            .paper { 
-                width: 48mm; 
-                max-width: 48mm; 
-                margin: 0 auto; 
-                padding: 2mm 5mm 4mm 3mm;
-            }
+        @page { margin: 4mm 1mm 2mm 1mm; size: 58mm auto; }
+        body { margin: 0; }
+        .paper { width: 100%; max-width: 54mm; margin: 0 auto; padding: 3mm 1mm 3mm 1mm; }
         }
         </style>
         </head>
