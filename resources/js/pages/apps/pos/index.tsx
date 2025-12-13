@@ -1354,50 +1354,50 @@ export default function Index() {
         <title>Struk ${tx.invoice ?? ''}</title>
         <style>
         * { box-sizing: border-box; }
-        body { font-family: DejaVu Sans, Arial, "Helvetica", "Liberation Sans", sans-serif; font-size: 10px; margin:0; padding:0; color: #000; }
+        body { font-family: DejaVu Sans, Arial, "Helvetica", "Liberation Sans", sans-serif; font-size: 12px; margin:0; padding:0; color: #000; }
         .paper { width: 100%; max-width: 58mm; margin: 0 auto; padding: 2px 3px 6px; }
         .center { text-align: center; }
-        h1 { font-size: 11px; margin: 0; font-weight: bold; }
-        .small { font-size: 9px; }
+        h1 { font-size: 14px; margin: 0; font-weight: bold; }
+        .small { font-size: 11px; }
         hr { border:0; border-top:1px dashed #000; margin: 6px 0; }
-        .section { font-size: 10px; }
+        .section { font-size: 12px; }
         .row { display: flex; justify-content: space-between; margin: 2px 0; }
         .row span { font-weight: 500; }
         .item { margin: 6px 0; }
-        .item-name { font-size: 10px; font-weight: 600; }
-        .item-sub { display:flex; justify-content: space-between; font-size: 9px; margin-top: 1px; }
+        .item-name { font-size: 12px; font-weight: 600; }
+        .item-sub { display:flex; justify-content: space-between; font-size: 11px; margin-top: 1px; }
         .logo { max-width: 60px; margin-bottom: 4px; }
         .table-badge { 
             display: inline-block;
             border: 1px solid #000; 
             padding: 1px 6px; 
             font-weight: bold;
-            font-size: 11px;
+            font-size: 13px;
         }
         .total-section { 
             text-align: center; 
             padding: 6px 0;
         }
         .total-label { 
-            font-size: 10px; 
+            font-size: 12px; 
             margin-bottom: 2px;
         }
         .total-amount { 
-            font-size: 14px; 
+            font-size: 16px; 
             font-weight: bold; 
         }
         .summary-row { 
             display: flex; 
             justify-content: space-between; 
             margin: 2px 0;
-            font-size: 10px;
+            font-size: 12px;
         }
         .item-count {
-            font-size: 9px;
+            font-size: 11px;
             margin-bottom: 3px;
         }
         .payment-section {
-            font-size: 9px;
+            font-size: 11px;
         }
         @media print {
         @page { margin: 4mm 1mm 2mm 1mm; size: 58mm auto; }
