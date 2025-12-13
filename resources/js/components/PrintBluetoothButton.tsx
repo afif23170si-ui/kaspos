@@ -155,13 +155,13 @@ export default function PrintBluetoothButton({ invoice, endpoint }: Props) {
         <div className="flex flex-col gap-2">
             <Button
                 type="button"
-                variant="secondary"
+                variant="destructive"
                 className="w-full"
                 onClick={handlePrintBT}
                 disabled={loading || qzReady === "loading"}
             >
                 <Printer className="size-4 mr-2" />
-                {loading ? "Mencetak..." : "Bluetooth"}
+                {loading ? "Mencetak..." : "Cetak Struk Kasir"}
             </Button>
         </div>
     );

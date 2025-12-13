@@ -2896,25 +2896,10 @@ export default function Index() {
                             </Card>
                             <div className='flex flex-col gap-2 mt-4'>
                                 <div className='flex flex-row gap-2 items-center w-full'>
-                                    <Button type='button' onClick={() => handlePrint()} variant={'destructive'} className='w-full'>
-                                        <Printer className='size-4' /> Cetak Struk
-                                    </Button>
-                                    <Button type='button' onClick={() => handleKitchenPrint(data.transactionPrint)} variant={'outline'} className='w-full border-primary text-primary hover:bg-primary/10'>
-                                        <Printer className='size-4' /> Cetak Dapur
-                                    </Button>
-                                </div>
-                                <div className='flex flex-row gap-2 items-center w-full'>
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        className="w-full"
-                                        onClick={() => handleWindowsPrint(data.transactionPrint, settings)}
-                                    >
-                                        <Printer className="size-4" /> Windows Print
-                                    </Button>
-                                    <PrintBluetoothButton invoice={data?.lastTransaction?.invoice} endpoint={route("apps.pos.print-receipt-bluetooth", data?.lastTransaction?.invoice)} />
-                                </div>
-                                <div className='flex flex-row gap-2 items-center w-full'>
+                                    <PrintBluetoothButton 
+                                        invoice={data?.lastTransaction?.invoice} 
+                                        endpoint={route("apps.pos.print-receipt-bluetooth", data?.lastTransaction?.invoice)} 
+                                    />
                                     <PrintKitchenBluetoothButton 
                                         invoice={data?.lastTransaction?.invoice} 
                                         endpoint={route("apps.pos.print-kitchen-bluetooth", data?.lastTransaction?.invoice)} 

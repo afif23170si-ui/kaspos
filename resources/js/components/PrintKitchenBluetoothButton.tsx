@@ -166,7 +166,7 @@ export default function PrintKitchenBluetoothButton({ invoice, endpoint, onPrint
                 disabled={loading || qzReady === "loading"}
             >
                 <ChefHat className="size-4 mr-2" />
-                {loading ? "Mencetak..." : "Bluetooth Dapur"}
+                {loading ? "Mencetak..." : "Cetak Ulang Dapur"}
             </Button>
         </div>
     );
