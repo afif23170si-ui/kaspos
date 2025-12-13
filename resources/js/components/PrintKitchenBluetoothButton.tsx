@@ -31,7 +31,8 @@ export default function PrintKitchenBluetoothButton({ invoice, endpoint, onPrint
             try {
                 setQzReady("loading");
 
-                const url = "https://cdn.jsdelivr.net/gh/qzind/tray/2.2/web/qz-tray.js";
+                // Use QZ Tray 2.2.4 (stable release)
+                const url = "https://cdn.jsdelivr.net/npm/qz-tray@2.2.4/qz-tray.min.js";
                 if (!window.qz) {
                     await new Promise<void>((resolve, reject) => {
                         const existing = document.querySelector(`script[src="${url}"]`) as HTMLScriptElement | null;
