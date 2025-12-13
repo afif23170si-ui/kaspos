@@ -5,7 +5,7 @@ import type { SharedData } from '@/types';
 import {
     Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription
 } from '@/components/ui/dialog';
-import { User, Utensils, ChevronDown, X } from "lucide-react";
+import { User, Utensils, ChevronDown, X, Minus, Plus } from "lucide-react";
 import { Table } from '@/types/table';
 import { toast } from 'sonner';
 import { Toaster } from '@/components/ui/sonner';
@@ -410,16 +410,32 @@ export default function Welcome() {
                                             </div>
                                         )}
 
-                                        {/* Qty */}
+                                        {/* Qty - Mobile Friendly with +/- buttons */}
                                         <div>
-                                            <label className="text-sm block mb-1">Jumlah</label>
-                                            <input
-                                                type="number"
-                                                min={1}
-                                                value={quantity}
-                                                onChange={(e) => setQuantity(Number(e.target.value))}
-                                                className="w-full rounded border px-3 py-2 dark:bg-[#2a2a2a]"
-                                            />
+                                            <label className="text-sm block mb-2">Jumlah</label>
+                                            <div className="flex items-center justify-center gap-3">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                                                    className="w-12 h-12 flex items-center justify-center rounded-full border-2 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 active:bg-gray-200 dark:active:bg-gray-600 transition-colors"
+                                                >
+                                                    <Minus size={20} />
+                                                </button>
+                                                <input
+                                                    type="number"
+                                                    min={1}
+                                                    value={quantity}
+                                                    onChange={(e) => setQuantity(Math.max(1, Number(e.target.value) || 1))}
+                                                    className="w-20 text-center text-xl font-semibold rounded border px-2 py-2 dark:bg-[#2a2a2a] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setQuantity(quantity + 1)}
+                                                    className="w-12 h-12 flex items-center justify-center rounded-full border-2 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 active:bg-gray-200 dark:active:bg-gray-600 transition-colors"
+                                                >
+                                                    <Plus size={20} />
+                                                </button>
+                                            </div>
                                         </div>
 
                                         {/* Note */}
