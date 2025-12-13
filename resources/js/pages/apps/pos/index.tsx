@@ -1363,7 +1363,7 @@ export default function Index() {
         hr { border:0; border-top:1px dashed var(--line); margin: 6px 0; }
         .section { font-size: 10px; }
         .row { display: flex; justify-content: space-between; margin: 2px 0; }
-        .row span:first-child { color: var(--muted); }
+        .row span:first-child { font-weight: 500; }
         .row span:last-child { font-weight: 500; }
         .item { margin: 6px 0; }
         .item-name { font-size: 10px; font-weight: 600; }
