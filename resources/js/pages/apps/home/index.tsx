@@ -5,7 +5,7 @@ import type { SharedData } from '@/types';
 import {
     Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription
 } from '@/components/ui/dialog';
-import { User, Utensils, ChevronDown, X, Minus, Plus } from "lucide-react";
+import { User, Utensils, ChevronDown, X, Minus, Plus, Pencil } from "lucide-react";
 import { Table } from '@/types/table';
 import { toast } from 'sonner';
 import { Toaster } from '@/components/ui/sonner';
@@ -121,6 +121,14 @@ export default function Welcome() {
 
     const removeCartItem = (index: number) => {
         setCartItems(prev => prev.filter((_, i) => i !== index));
+    };
+
+    const updateCartNote = (index: number, newNote: string) => {
+        setCartItems(prev => {
+            const copy = [...prev];
+            copy[index].note = newNote;
+            return copy;
+        });
     };
 
     const subtotal = useMemo(
@@ -482,36 +490,46 @@ export default function Welcome() {
                             ) : (
                                 <div className="space-y-3 max-h-[300px] overflow-y-auto">
                                     {cartItems.map((line, idx) => (
-                                        <div key={idx} className="flex gap-3 border-b pb-3 items-start relative">
-                                            <div className="relative w-14 h-14">
-                                                <img src={line.item.image || '/NoImage.png'} alt={line.item.name} className="w-full h-full object-cover rounded" />
-                                                <button
-                                                    onClick={() => removeCartItem(idx)}
-                                                    className="absolute inset-0 flex items-center justify-center bg-red-500/30 text-white rounded hover:bg-red-600/40 transition"
-                                                    title="Hapus"
-                                                >
-                                                    <X size={16} />
-                                                </button>
-                                            </div>
-                                            <div className="flex-1">
-                                                <p className="font-medium">{line.item.name}</p>
-                                                {line.note && <p className="text-xs text-gray-500">Catatan: {line.note}</p>}
-                                            </div>
-                                            <div className="flex flex-col items-end gap-1">
-                                                <div className="flex items-center gap-1">
+                                        <div key={idx} className="border-b pb-3">
+                                            <div className="flex gap-3 items-start">
+                                                <div className="relative w-14 h-14 flex-shrink-0">
+                                                    <img src={line.item.image || '/NoImage.png'} alt={line.item.name} className="w-full h-full object-cover rounded" />
+                                                    <button
+                                                        onClick={() => removeCartItem(idx)}
+                                                        className="absolute inset-0 flex items-center justify-center bg-red-500/30 text-white rounded hover:bg-red-600/40 transition"
+                                                        title="Hapus"
+                                                    >
+                                                        <X size={16} />
+                                                    </button>
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="font-medium text-sm truncate">{line.item.name}</p>
+                                                    <p className="text-xs font-semibold text-green-600">
+                                                        Rp {(line.quantity * (line.item.price || 0)).toLocaleString()}
+                                                    </p>
+                                                </div>
+                                                <div className="flex items-center gap-1 flex-shrink-0">
                                                     <button
                                                         onClick={() => updateCartQuantity(idx, line.quantity - 1)}
-                                                        className="w-6 h-6 rounded-full border flex items-center justify-center text-sm hover:bg-gray-100 dark:hover:bg-gray-700"
+                                                        className="w-7 h-7 rounded-full border flex items-center justify-center text-sm hover:bg-gray-100 dark:hover:bg-gray-700"
                                                     >-</button>
-                                                    <span className="text-sm px-1">{line.quantity}</span>
+                                                    <span className="text-sm w-6 text-center">{line.quantity}</span>
                                                     <button
                                                         onClick={() => updateCartQuantity(idx, line.quantity + 1)}
-                                                        className="w-6 h-6 rounded-full border flex items-center justify-center text-sm hover:bg-gray-100 dark:hover:bg-gray-700"
+                                                        className="w-7 h-7 rounded-full border flex items-center justify-center text-sm hover:bg-gray-100 dark:hover:bg-gray-700"
                                                     >+</button>
                                                 </div>
-                                                <p className="text-xs font-semibold">
-                                                    Rp {(line.quantity * (line.item.price || 0)).toLocaleString()}
-                                                </p>
+                                            </div>
+                                            {/* Editable Note */}
+                                            <div className="mt-2 flex items-center gap-2">
+                                                <Pencil size={12} className="text-gray-400 flex-shrink-0" />
+                                                <input
+                                                    type="text"
+                                                    value={line.note || ''}
+                                                    onChange={(e) => updateCartNote(idx, e.target.value)}
+                                                    placeholder="Tambah catatan..."
+                                                    className="flex-1 text-xs px-2 py-1.5 border rounded bg-gray-50 dark:bg-gray-800 dark:border-gray-700 focus:outline-none focus:ring-1 focus:ring-green-500"
+                                                />
                                             </div>
                                         </div>
                                     ))}
