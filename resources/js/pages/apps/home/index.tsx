@@ -566,12 +566,18 @@ export default function Welcome() {
                                 </div>
                             )}
 
-                            <DialogFooter className="mt-3">
+                            <DialogFooter className="mt-3 flex flex-col gap-2">
                                 <button
                                     onClick={handleSubmitOrder}
-                                    className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700 text-sm font-medium"
+                                    className="w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 text-base font-medium"
                                 >
-                                    Kirim ke Kasir & Dapur • Rp {subtotal.toLocaleString()}
+                                    Pesan Sekarang • Rp {subtotal.toLocaleString()}
+                                </button>
+                                <button
+                                    onClick={() => setShowCartDialog(false)}
+                                    className="w-full border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 py-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-sm font-medium"
+                                >
+                                    + Tambah Pesanan Lain
                                 </button>
                             </DialogFooter>
                         </DialogContent>
