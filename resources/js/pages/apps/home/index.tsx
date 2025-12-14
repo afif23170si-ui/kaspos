@@ -522,13 +522,13 @@ export default function Welcome() {
                                             </div>
                                             {/* Editable Note */}
                                             <div className="mt-2 flex items-center gap-2">
-                                                <Pencil size={12} className="text-gray-400 flex-shrink-0" />
+                                                <Pencil size={14} className="text-gray-400 flex-shrink-0" />
                                                 <input
                                                     type="text"
                                                     value={line.note || ''}
                                                     onChange={(e) => updateCartNote(idx, e.target.value)}
                                                     placeholder="Tambah catatan..."
-                                                    className="flex-1 text-xs px-2 py-1.5 border rounded bg-gray-50 dark:bg-gray-800 dark:border-gray-700 focus:outline-none focus:ring-1 focus:ring-green-500"
+                                                    className="flex-1 text-base px-3 py-2 border rounded bg-gray-50 dark:bg-gray-800 dark:border-gray-700 focus:outline-none focus:ring-1 focus:ring-green-500"
                                                 />
                                             </div>
                                         </div>
