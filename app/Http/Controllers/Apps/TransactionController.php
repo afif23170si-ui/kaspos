@@ -518,4 +518,92 @@ class TransactionController extends Controller implements HasMiddleware
 
         return back();
     }
+
+    /**
+     * Export all transactions to CSV
+     */
+    public function exportAllTransactions()
+    {
+        $transactions = Transaction::with(['customer', 'cashier_shift.user', 'transaction_details'])
+            ->orderBy('transaction_date', 'desc')
+            ->get();
+
+        $filename = 'transactions_backup_' . now()->format('Y-m-d_His') . '.csv';
+        
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"$filename\"",
+        ];
+
+        $callback = function() use ($transactions) {
+            $file = fopen('php://output', 'w');
+            
+            // CSV Header
+            fputcsv($file, [
+                'ID', 'Invoice', 'Tanggal', 'Tipe Transaksi', 'Platform', 
+                'Customer', 'Kasir', 'Subtotal', 'Diskon', 'Grand Total',
+                'Bayar', 'Kembalian', 'Status', 'Metode Bayar', 'Created At'
+            ]);
+            
+            foreach ($transactions as $trx) {
+                fputcsv($file, [
+                    $trx->id,
+                    $trx->invoice,
+                    $trx->transaction_date,
+                    $trx->transaction_type,
+                    $trx->platform ?? '-',
+                    $trx->customer->name ?? 'Umum',
+                    $trx->cashier_shift->user->name ?? '-',
+                    $trx->sub_total,
+                    $trx->discount ?? 0,
+                    $trx->grand_total,
+                    $trx->pay,
+                    $trx->change ?? 0,
+                    $trx->status,
+                    $trx->payment_method ?? '-',
+                    $trx->created_at,
+                ]);
+            }
+            
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    /**
+     * Reset/delete all transactions after password verification
+     */
+    public function resetAllTransactions(Request $request)
+    {
+        // Validate password
+        $request->validate([
+            'password' => 'required|string',
+        ]);
+
+        $user = auth()->user();
+        
+        // Verify password
+        if (!password_verify($request->password, $user->password)) {
+            return back()->withErrors(['password' => 'Password tidak valid.']);
+        }
+
+        // Check if user is super admin
+        if (!$user->hasRole('super-admin')) {
+            return back()->withErrors(['password' => 'Anda tidak memiliki akses untuk fitur ini.']);
+        }
+
+        // Delete all transactions and related data
+        DB::transaction(function () {
+            // Delete related records first (foreign key constraints)
+            DB::table('transaction_kitchen_items')->delete();
+            DB::table('transaction_kitchens')->delete();
+            DB::table('transaction_payments')->delete();
+            DB::table('transaction_taxs')->delete();
+            DB::table('transaction_details')->delete();
+            DB::table('transactions')->delete();
+        });
+
+        return back()->with('success', 'Semua data penjualan berhasil dihapus.');
+    }
 }

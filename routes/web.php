@@ -108,6 +108,8 @@ Route::group(['as' => 'apps.', 'middleware' => ['auth']], function(){
         Route::post('/{transaction}/print-receipt', 'receipt')->name('print-receipt');
         Route::get('/{transaction}/print-invoice', 'invoice')->name('print-invoice');
         Route::post('/{transaction}/payment', 'payment')->name('payments');
+        Route::get('/export-all', 'exportAllTransactions')->name('export-all');
+        Route::post('/reset-all', 'resetAllTransactions')->name('reset-all');
     });
     Route::resource('transactions', TransactionController::class);
     // transaction return route
