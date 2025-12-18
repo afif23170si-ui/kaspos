@@ -835,7 +835,8 @@ export default function Index() {
             onSuccess: () => {
                 setData(prevData => ({
                     ...prevData,
-                    items: [] as any[],
+                    // Jangan reset items ke [], gunakan items.data dari server agar produk tetap tampil
+                    items: items.data as any[],
                     cashierId: '',
                     note: '',
                     selectedOrderType: '',
@@ -1136,9 +1137,6 @@ export default function Index() {
 
     const handleKitchen = async () => {
         try {
-            // Auto-print ke printer dapur via Bluetooth
-            await printKitchenBluetooth(data.lastTransaction.invoice);
-            
             // Kirim ke dapur (database)
             await axios.post(route('apps.pos.send-kitchen'), { invoice: data.lastTransaction.invoice });
             toast('Pesanan berhasil dikirim ke dapur');
@@ -2893,11 +2891,11 @@ export default function Index() {
                                 {/* Browser Print - with logo & full layout */}
                                 <div className='flex flex-row gap-2 items-center w-full'>
                                     <Button type='button' onClick={() => handlePrint()} variant={'outline'} className='w-full'>
-                                        <Printer className='size-4' /> Cetak (dengan Logo)
+                                        <Printer className='size-4' /> Cetak (Pilih Printer)
                                     </Button>
                                 </div>
                                 {/* Bluetooth/QZ Tray Print - faster, no popup */}
-                                <div className='flex flex-row gap-2 items-center w-full'>
+                                <div className='grid grid-cols-2 gap-2 w-full'>
                                     <PrintBluetoothButton 
                                         invoice={data?.lastTransaction?.invoice} 
                                         endpoint={route("apps.pos.print-receipt-bluetooth", data?.lastTransaction?.invoice)} 

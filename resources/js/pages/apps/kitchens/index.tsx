@@ -10,10 +10,11 @@ import { Category } from '@/types/category';
 import { TransactionKitchen } from '@/types/transaction-kitchen';
 import { Head, router, usePage } from '@inertiajs/react';
 import axios from 'axios';
-import { CheckCircle, Clock, Loader2, RefreshCcw } from 'lucide-react';
+import { CheckCircle, Clock, Loader2, Printer, RefreshCcw } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
 import { User, type BreadcrumbItem } from '@/types';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { printKitchenBluetooth } from '@/components/PrintKitchenBluetoothButton';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -80,6 +81,21 @@ export default function KitchenPage() {
     const maxIdRef = useRef<number>(orders.length ? Math.max(...orders.map((o) => o.id)) : 0);
     const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const [processing, setProcessing] = useState(false);
+    const [printingOrderId, setPrintingOrderId] = useState<number | null>(null);
+
+    const handlePrintKitchenStruk = async (order: TransactionKitchen) => {
+        try {
+            setPrintingOrderId(order.id);
+            const success = await printKitchenBluetooth(order.transaction.invoice);
+            if (success) {
+                // Optional: show toast or feedback
+            }
+        } catch (error) {
+            console.error('Print kitchen error:', error);
+        } finally {
+            setPrintingOrderId(null);
+        }
+    };
 
     type ReadyMap = Record<number, Record<number, boolean>>;
     const [readyMap, setReadyMap] = useState<ReadyMap>({});
@@ -375,6 +391,16 @@ export default function KitchenPage() {
                                                 Selesai
                                             </Button>
                                         )}
+                                        <Button
+                                            type="button"
+                                            size="sm"
+                                            variant="outline"
+                                            onClick={() => handlePrintKitchenStruk(order)}
+                                            disabled={printingOrderId === order.id}
+                                        >
+                                            <Printer className="mr-1 h-4 w-4" />
+                                            {printingOrderId === order.id ? 'Mencetak...' : 'Cetak Struk'}
+                                        </Button>
                                     </div>
                                 </CardContent>
                             </Card>

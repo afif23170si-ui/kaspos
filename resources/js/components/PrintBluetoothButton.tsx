@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Button } from "@/components/ui/button";
-import { Printer } from "lucide-react";
+import { Bluetooth, Printer } from "lucide-react";
 import axios from "axios";
 import React from "react";
 
@@ -118,17 +118,18 @@ export default function PrintBluetoothButton({ invoice, endpoint }: Props) {
     }, [invoice, endpoint]);
 
     return (
-        <div className="flex flex-col gap-2">
-            <Button
-                type="button"
-                variant="destructive"
-                className="w-full"
-                onClick={handlePrintBT}
-                disabled={loading}
-            >
-                <Printer className="size-4 mr-2" />
-                {loading ? "Mencetak..." : "Cetak Struk Kasir"}
-            </Button>
-        </div>
+        <Button
+            type="button"
+            variant="destructive"
+            className="w-full relative"
+            onClick={handlePrintBT}
+            disabled={loading}
+        >
+            <div className="relative mr-2">
+                <Printer className="size-4" />
+                <Bluetooth className="size-2.5 absolute -top-1 -right-1.5 text-white" />
+            </div>
+            {loading ? "Mencetak..." : "Cetak Struk"}
+        </Button>
     );
 }

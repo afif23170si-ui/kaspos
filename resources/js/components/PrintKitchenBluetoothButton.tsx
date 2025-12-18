@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Button } from "@/components/ui/button";
-import { ChefHat } from "lucide-react";
+import { Bluetooth, ChefHat } from "lucide-react";
 import axios from "axios";
 import React from "react";
 
@@ -124,18 +124,19 @@ export default function PrintKitchenBluetoothButton({ invoice, endpoint, onPrint
     }, [invoice, endpoint, onPrintStart, onPrintEnd]);
 
     return (
-        <div className="flex flex-col gap-2">
-            <Button
-                type="button"
-                variant="outline"
-                className="w-full border-orange-500 text-orange-600 hover:bg-orange-50"
-                onClick={handlePrintKitchen}
-                disabled={loading}
-            >
-                <ChefHat className="size-4 mr-2" />
-                {loading ? "Mencetak..." : "Cetak Ulang Dapur"}
-            </Button>
-        </div>
+        <Button
+            type="button"
+            variant="outline"
+            className="w-full border-orange-500 text-orange-600 hover:bg-orange-50 relative"
+            onClick={handlePrintKitchen}
+            disabled={loading}
+        >
+            <div className="relative mr-2">
+                <ChefHat className="size-4" />
+                <Bluetooth className="size-2.5 absolute -top-1 -right-1.5 text-orange-500" />
+            </div>
+            {loading ? "Mencetak..." : "Cetak Ulang Dapur"}
+        </Button>
     );
 }
 
