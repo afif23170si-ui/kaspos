@@ -599,7 +599,7 @@ class TransactionController extends Controller implements HasMiddleware
             DB::table('transaction_kitchen_items')->delete();
             DB::table('transaction_kitchens')->delete();
             DB::table('transaction_payments')->delete();
-            DB::table('transaction_taxs')->delete();
+            DB::table('transaction_taxes')->delete();
             DB::table('transaction_details')->delete();
             DB::table('transactions')->delete();
         });
