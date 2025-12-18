@@ -4,6 +4,7 @@ import AppLayout from '@/layouts/app-layout'
 import PagePagination from '@/components/page-pagination';
 import { User, type BreadcrumbItem } from '@/types';
 import { Head, useForm, usePage, router } from '@inertiajs/react';
+import type { SharedData } from '@/types';
 import { Table, TableBody, TableCard, TableCell, TableEmpty, TableHead, TableHeader, TableRow, TableFilter } from '@/components/ui/table';
 import Heading from '@/components/heading';
 import { Setting } from '@/types/setting';
@@ -44,7 +45,7 @@ interface IndexProps {
 
 export default function Index() {
 
-    const { transactions, perPage, currentPage, platforms, cashiers, banks } = usePage<IndexProps>().props;
+    const { transactions, perPage, currentPage, platforms, cashiers, banks, auth } = usePage<IndexProps & SharedData>().props;
 
     const statusColor = (status: string) => {
         switch (status) {
@@ -141,15 +142,17 @@ export default function Index() {
             <div className='p-6'>
                 <div className="flex items-start justify-between gap-4">
                     <Heading title='Penjualan' description='Halaman ini digunakan untuk mengelola data penjualan'/>
-                    <Button 
-                        variant="destructive" 
-                        size="sm"
-                        onClick={() => setResetModal(true)}
-                        className="flex-shrink-0"
-                    >
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        Reset Data
-                    </Button>
+                    {auth.super && (
+                        <Button 
+                            variant="destructive" 
+                            size="sm"
+                            onClick={() => setResetModal(true)}
+                            className="flex-shrink-0"
+                        >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Reset Data
+                        </Button>
+                    )}
                 </div>
                 <div className="mt-6">
                     <TableFilter
