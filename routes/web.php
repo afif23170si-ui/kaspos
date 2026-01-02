@@ -175,3 +175,8 @@ Route::group(['as' => 'apps.', 'middleware' => ['auth']], function(){
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';
+
+// Documentation Routes
+Route::get('/documentations/{slug?}', [\App\Http\Controllers\DocumentationController::class, 'index'])
+    ->name('documentation.index')
+    ->where('slug', '.*');
