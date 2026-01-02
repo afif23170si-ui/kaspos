@@ -1,5 +1,5 @@
 import { Head } from '@inertiajs/react';
-import DocsLayout from '@/Layouts/DocsLayout';
+import DocsLayout from '@/layouts/DocsLayout';
 
 interface Props {
     content: string;
